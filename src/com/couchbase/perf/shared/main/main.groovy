@@ -119,12 +119,10 @@ class Execute {
                     implementationsToAdd.add(new PerfConfig.Implementation(implementation.language, version, null, sha, true))
                 }
                 else if (implementation.language == "C++") {
-                    def sha = CppVersions.getLatestSha()
-                    def allReleases = CppVersions.getAllReleases()
-                    def highest = ImplementationVersion.highest(allReleases)
-                    ctx.env.log("Found latest sha for C++: ${sha}")
-                    String version = CppVersions.formatSnapshotVersion(highest, sha)
-                    implementationsToAdd.add(new PerfConfig.Implementation(implementation.language, version, null, sha.split("\\+").last(), true))
+                    def version = CppVersions.getLatestSnapshot()
+                    ctx.env.log("Found latest snapshot for C++: ${version}")
+                    def sha = (version.snapshot != null && version.snapshot.contains('+')) ? version.snapshot.split("\\+").last() : null
+                    implementationsToAdd.add(new PerfConfig.Implementation(implementation.language, version.toString(), null, sha, true))
                 }
                 else if (implementation.language == "Ruby") {
                     def sha = RubyVersions.getLatestSha()

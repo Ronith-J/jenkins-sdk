@@ -8,7 +8,7 @@ class GithubVersions {
     static String getLatestSha(String repo, String branch) {
         def json = NetworkUtil.readJson("https://api.github.com/repos/${repo}/commits/${branch}")
         String sha = json.sha
-        return sha.substring(0, 6)
+        return sha.substring(0, 7)
     }
 
     /**
@@ -76,5 +76,50 @@ class GithubVersions {
         }
 
         return out
+    }
+
+    static int commitsSinceTag(String repo, String sha, String tag) {
+        def tagSha = shaForTag(repo, tag)
+
+        def url = "https://api.github.com/repos/${repo}/commits?sha=${sha}"
+        int commitsSinceTag = 0
+
+        while (url != null) {
+            println url
+
+            def commitsConnection = NetworkUtil.readRaw(url)
+            def commitsParser = new JsonSlurper()
+            def commitsJson = commitsParser.parseText(commitsConnection.getInputStream().getText())
+
+            for (commit in commitsJson) {
+                if (commit.sha == tagSha) {
+                    return commitsSinceTag
+                }
+                commitsSinceTag++
+            }
+            url = parseLinkHeaderForNext(commitsConnection)
+        }
+        throw new RuntimeException("Could not find tag `${tag}` in GitHub commits for `${repo}`")
+    }
+
+    private static String shaForTag(String repo, String tagName) {
+        def baseUrl = "https://api.github.com/repos/${repo}/tags"
+        def nextUrl = baseUrl
+
+        while (nextUrl != null) {
+            println nextUrl
+            def connection = NetworkUtil.readRaw(nextUrl)
+            def parser = new JsonSlurper()
+            def json = parser.parseText(connection.getInputStream().getText())
+            nextUrl = parseLinkHeaderForNext(connection)
+
+            for (tag in json) {
+                if (tag.name == tagName) {
+                    return tag.commit.sha
+                }
+            }
+        }
+
+        throw new RuntimeException("Could not find tag `${tagName}` in GitHub repo `${repo}`")
     }
 }

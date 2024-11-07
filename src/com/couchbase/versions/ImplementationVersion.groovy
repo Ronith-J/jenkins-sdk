@@ -79,8 +79,9 @@ class ImplementationVersion implements Comparable<ImplementationVersion> {
         if (patch > other.patch) return 1;
 
         if (snapshot && other.snapshot) {
-            var identifiers = snapshot.split('\\.')
-            var otherIdentifiers = other.snapshot.split('\\.')
+            // Anything after '+' is build metadata that doesn't affect ordering
+            var identifiers = snapshot.substring(1).split('\\+').first().split('\\.')
+            var otherIdentifiers = other.snapshot.substring(1).split('\\+').first().split('\\.')
             var shortestLength = Math.min(identifiers.length, otherIdentifiers.length)
 
             for (int i = 0; i < shortestLength; i++) {
