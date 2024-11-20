@@ -142,9 +142,12 @@ class BuildPerformer {
                 case Sdk.DOTNET:
                     // 3.3.0 is earliest supported
                     def target = ImplementationVersion.from("3.3.0")
-                    def skipVersion = new ImplementationVersion(3, 4, 10, "rc1")
+                    def skipVersions = [
+                            new ImplementationVersion(3, 4, 10, "rc1"),
+                            new ImplementationVersion(3, 4, 5, "rc2")
+                    ]
                     def vers = DotNetVersions.allReleases
-                            .findAll { (it.isAbove(target) || it.equals(target)) && !it.equals(skipVersion)}
+                            .findAll { (it.isAbove(target) || it.equals(target)) && !skipVersions.contains(it)}
                     def implementation = new PerfConfig.Implementation(".NET", "3.X.0", null)
                     versions = Versions.versions(env, implementation, ".NET", vers)
                     break
