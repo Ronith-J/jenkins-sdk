@@ -83,6 +83,8 @@ class BuildPerformer {
         if (!validationMode) {
             if (version.isPresent() && sha.isPresent()) {
                 versionsToBuild.add(new BuildShaVersion(version.get(), sha.get()));
+            } else if (version.isPresent() && gerrit.isPresent()) {
+                versionsToBuild.add(new BuildGerritVersion(version.get(), gerrit.get()))
             } else if (sha.isPresent()) {
                 versionsToBuild.add(new BuildSha(sha.get()));
             } else if (version.isPresent()) {
@@ -189,7 +191,7 @@ class BuildPerformer {
                 if (sdk == Sdk.JAVA || sdk == Sdk.KOTLIN || sdk == Sdk.SCALA || sdk == Sdk.JAVA_COLUMNAR) {
                     BuildDockerJVMPerformer.build(env, dir, sdkRaw.replace("-sdk", ""), vers, imageName, onlySource)
                 } else if (sdk == Sdk.GO) {
-                    BuildDockerGoPerformer.build(env, dir, vers, imageName, onlySource)
+                    BuildDockerGoPerformer.build(env, dir, vers, imageName, onlySource, dockerBuildArgs)
                 } else if (sdk == Sdk.PYTHON) {
                     BuildDockerPythonPerformer.build(env, dir, vers, imageName, onlySource, dockerBuildArgs)
                 } else if (sdk == Sdk.CPP) {

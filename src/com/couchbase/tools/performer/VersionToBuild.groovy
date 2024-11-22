@@ -37,6 +37,10 @@ interface HasVersion {
     }
 }
 
+interface HasGerrit {
+    String gerrit()
+}
+
 /**
  * Build the current main branch.  Usually used when we don't care about specific versions - e.g. when doing functional
  * testing.
@@ -70,7 +74,7 @@ record BuildSha(String sha) implements VersionToBuild, HasSha {
 /**
  * Build a specific SHA, e.g. "20e862d".  Usually used for a snapshot build.
  *
- * Unlike BuildSha, Here we do know the version this sha corresponds to, so the tag processor will be run.
+ * Unlike BuildSha, here we do know the version this sha corresponds to, so the tag processor will be run.
  */
 record BuildShaVersion(String version, String sha) implements VersionToBuild, HasSha, HasVersion {
     @Override
@@ -100,11 +104,26 @@ record BuildVersion(String version) implements VersionToBuild, HasVersion {
  *
  * For the same reasons as `BuildSha`, the tags processor is not run in this mode.
  */
-record BuildGerrit(String gerrit) implements VersionToBuild {
+record BuildGerrit(String gerrit) implements VersionToBuild, HasGerrit {
     @Override
     public String toString() {
         return "BuildGerrit{" +
                 "gerrit='" + gerrit + '\'' +
+                '}';
+    }
+}
+
+/**
+ * Build from a specific Gerrit changeset, e.g. "refs/changes/94/184294/1".
+ *
+ * Unlike `BuildGerrit`, here we do know the version this changeset corresponds to, so the tag processor will be run.
+ */
+record BuildGerritVersion(String version, String gerrit) implements VersionToBuild, HasVersion, HasGerrit {
+    @Override
+    public String toString() {
+        return "BuildGerritVersion{" +
+                "version='" + version + '\'' +
+                ", gerrit='" + gerrit + '\'' +
                 '}';
     }
 }
