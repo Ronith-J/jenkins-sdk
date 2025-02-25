@@ -2,7 +2,7 @@
 # The tools will work out all permutations of runs from this.
 # They will interrogate the database and see what runs already exist.
 # Any runs that need running, will be.
-
+jobId: Random_Job_ID
 servers:
   # This is where the performers should run.  Currently only "localhost" is supported.
   # In future we want to supported scp-ing the performers to a remote host.
