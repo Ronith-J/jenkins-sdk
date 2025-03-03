@@ -28,15 +28,6 @@ import com.couchbase.versions.RubyVersions
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.yaml.YamlSlurper
-import java.io.File
-import java.io.IOException
-import java.io.InputStream
-import java.io.Writer
-import java.util.UUID
-import org.yaml.snakeyaml.Yaml
-import org.yaml.snakeyaml.constructor.Constructor
-import org.yaml.snakeyaml.DumperOptions
-import org.yaml.snakeyaml.representer.Representer
 
 import java.util.stream.Collectors
 
@@ -319,33 +310,8 @@ class Execute {
 
 
     static void execute(String[] args) {
-        // Generate a unique jobId
-        String jobId = UUID.randomUUID().toString();
-
-        // Load the existing job-config.yaml
-        Yaml yaml = new Yaml(new Constructor(Map.class), new Representer(), new DumperOptions());
-        File configFile = new File("config/job-config.yaml");
-        Map<String, Object> config = null;
-
-        try (InputStream inputStream = new FileInputStream(configFile)) {
-            config = yaml.load(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        // Insert the jobId
-        config.put("jobId", jobId);
-
-        // Save the updated job-config.yaml
-        try (Writer writer = new FileWriter(configFile)) {
-            yaml.dump(config, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         def ys = new YamlSlurper()
-        configFile = new File("config/job-config.yaml");
+        def configFile = new File("config/job-config.yaml")
         def jc = ys.parse(configFile)
         def env = new Environment(jc)
         env.log("Reading config from ${configFile.absolutePath}")
@@ -382,15 +348,6 @@ class Execute {
             protected void executeImpl(StageContext _) {}
         }
         try {
-            def sql = PerfDatabase.getConnection(jdbc, jc.database.username, dbPassword)
-            def configJson = new groovy.json.JsonBuilder([name: "Project Name", description: "Project Description"]).toString()
-
-            sql.execute("""
-                INSERT INTO jobs (id, datetime, config, tags) 
-                VALUES (?, NOW(), ?::jsonb, ?::text[])
-                ON CONFLICT (id) DO NOTHING
-            """, [UUID.fromString(jobId), configJson, ["tag1", "tag2"] as String[]]) // Convert list to array
-
             root.execute(ctx)
         } finally {
             root.finish(ctx)
