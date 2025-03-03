@@ -14,26 +14,12 @@ class CppVersions {
 
     @Memoized
     static ImplementationVersion getLatestSnapshot() {
-        return getSnapshot(ImplementationVersion.highest(getAllReleases()), GithubVersions.getLatestSha(REPO, BRANCH))
+        return getSnapshot(BRANCH, true) // The next release on main is now always a dot-minor.
     }
 
-    static ImplementationVersion getSnapshot(ImplementationVersion nearestRelease, String sha) {
-        def commitsSinceRelease = GithubVersions.commitsSinceTag(REPO, sha, nearestRelease.toString())
-        if (commitsSinceRelease == 0) {
-            return nearestRelease
-        }
-
-        String snapshot
-        int patch = nearestRelease.patch
-        if (nearestRelease.snapshot == null) {
-            // This commit is _after_ a non-RC release - increment the patch
-            patch += 1
-            snapshot = "-${commitsSinceRelease}+${sha.substring(0, 7)}"
-        } else {
-            snapshot = "${nearestRelease.snapshot}.${commitsSinceRelease}+${sha.substring(0, 7)}"
-        }
-
-        return new ImplementationVersion(nearestRelease.major, nearestRelease.minor, patch, snapshot)
+    static ImplementationVersion getSnapshot(String shaOrBranch, boolean nextReleaseIsDotMinor) {
+        def attrs = GithubVersions.getSnapshotAttributes(REPO, shaOrBranch)
+        return attrs.toImplementationVersion(nextReleaseIsDotMinor)
     }
 
     /**

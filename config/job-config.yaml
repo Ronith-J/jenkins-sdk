@@ -131,6 +131,12 @@ matrix:
       version: 3.4.X
 
     - language: .NET
+      version: 3.5.X
+
+    - language: .NET
+      version: 3.6.X
+
+    - language: .NET
       version: snapshot
 
     # Earliest version the Go performer can compile is 2.3.0 (possibly earlier)
@@ -154,6 +160,9 @@ matrix:
       version: 2.8.X
 
     - language: Go
+      version: 2.9.X
+
+    - language: Go
       version: snapshot
 
     - language: Python
@@ -164,6 +173,9 @@ matrix:
 
     - language: Python
       version: 4.2.X
+
+    - language: Python
+      version: 4.3.X
 
     - language: C++
       version: snapshot
@@ -179,6 +191,9 @@ matrix:
 
     - language: Node
       version: 4.3.X
+
+    - language: Node
+      version: 4.4.X
 
     - language: Ruby
       version: 3.4.X

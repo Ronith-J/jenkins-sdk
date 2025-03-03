@@ -171,6 +171,10 @@ class BuildPerformer {
                     def implementation = new PerfConfig.Implementation("Columnar-Python", "1.X.0", null)
                     versions = Versions.versions(env, implementation, "columnar-python")
                     break
+                case Sdk.GO_COLUMNAR:
+                    def implementation = new PerfConfig.Implementation("Columnar-Go", "1.X.0", null)
+                    versions = Versions.versions(env, implementation, "columnar-go")
+                    break
             }
 
             env.log("Got ${versions.size()} versions")
@@ -206,6 +210,8 @@ class BuildPerformer {
                     BuildDockerColumnarNodePerformer.build(env, dir, vers, imageName, onlySource)
                 }else if (sdk == Sdk.PYTHON_COLUMNAR) {
                     BuildDockerColumnarPythonPerformer.build(env, dir, vers, imageName, onlySource)
+                }else if (sdk == Sdk.GO_COLUMNAR) {
+                    BuildDockerColumnarGoPerformer.build(env, dir, vers, imageName, onlySource, dockerBuildArgs)
                 } else {
                     logger.severe("Do not yet know how to build " + sdkRaw)
                 }
