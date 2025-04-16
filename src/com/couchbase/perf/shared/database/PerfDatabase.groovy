@@ -55,6 +55,7 @@ class PerfDatabase {
         execute(sql, env, "ALTER TABLE situational_run_join ADD COLUMN IF NOT EXISTS params jsonb")
         execute(sql, env, "ALTER TABLE run_events ALTER COLUMN datetime TYPE TIMESTAMPTZ")
         execute(sql, env, "ALTER TABLE situational_runs ALTER COLUMN datetime TYPE TIMESTAMPTZ")
+        execute(sql, env, "ALTER TABLE situational_run_join ADD PRIMARY KEY IF NOT EXISTS (situational_run_id, run_id)")
 
         // Indexes
         execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_buckets_run_id ON buckets (run_id)")
@@ -71,13 +72,20 @@ class PerfDatabase {
 
         // For FIT-as-a-Service:-
         // New tables to hold an overlying job for grouping runs
-        execute(sql, env, "CREATE TABLE IF NOT EXISTS jobs (id uuid PRIMARY KEY, datetime timestamp NOT NULL DEFAULT now(), config jsonb, tags TEXT[] DEFAULT NULL)");
-        execute(sql, env, "CREATE TABLE IF NOT EXISTS job_run_join (job_id UUID REFERENCES jobs(id) ON DELETE CASCADE, run_id UUID REFERENCES runs(id) ON DELETE CASCADE, PRIMARY KEY (job_id, run_id))");
-        // Indexes for the new tables
-        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_jobs_datetime ON jobs (datetime)");
-        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_jobs_tags ON jobs USING gin (tags)");  
-        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_job_runs_job_id ON job_run_join (job_id)");
-        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_job_runs_run_id ON job_run_join (run_id)"); 
+        execute(sql, env, "CREATE TABLE IF NOT EXISTS faas_jobs (id uuid PRIMARY KEY, job_type TEXT NOT NULL, datetime TIMESTAMPTZ NOT NULL DEFAULT now(), config jsonb, tags TEXT[] DEFAULT NULL)");
+        execute(sql, env, "CREATE TABLE IF NOT EXISTS faas_perf_job_run_join (job_id UUID REFERENCES faas_jobs(id) ON DELETE CASCADE, run_id UUID REFERENCES runs(id) ON DELETE CASCADE, PRIMARY KEY (job_id, run_id))");
+        execute(sql, env, "CREATE TABLE IF NOT EXISTS faas_situational_job_run_join (job_id UUID REFERENCES faas_jobs(id) ON DELETE CASCADE, situational_run_id UUID, run_id UUID, FOREIGN KEY (situational_run_id, run_id) REFERENCES situational_run_join(situational_run_id, run_id) ON DELETE CASCADE, PRIMARY KEY (job_id, situational_run_id, run_id))");
+        
+        // Indexes for the faas tables
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_jobs_datetime ON faas_jobs (datetime)");
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_jobs_job_type ON faas_jobs (job_type)");
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_jobs_tags ON faas_jobs USING gin (tags)");  
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_perf_job_run_join_job_id ON faas_perf_job_run_join (job_id)");
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_perf_job_run_join_run_id ON faas_perf_job_run_join (run_id)"); 
+        
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_situational_job_run_join_job_id ON faas_situational_job_run_join (job_id)");
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_situational_job_run_join_run_id ON faas_situational_job_run_join (situational_run_id)");
+        execute(sql, env, "CREATE INDEX IF NOT EXISTS idx_faas_situational_job_run_join_combined ON faas_situational_job_run_join (situational_run_id, run_id)");
     }
 
     /**
